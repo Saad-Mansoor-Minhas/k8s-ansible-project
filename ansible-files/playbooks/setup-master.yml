@@ -1,0 +1,7 @@
+---
+- name: Set up Kubernetes master node
+  hosts: master
+  become: yes
+  roles:
+    - common
+    - master

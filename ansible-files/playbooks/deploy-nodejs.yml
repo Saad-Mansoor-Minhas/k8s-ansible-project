@@ -1,0 +1,20 @@
+---
+- name: Deploy Node.js Application
+  hosts: master
+  become: yes
+  tasks:
+    - name: Create Node.js Deployment
+      copy:
+        src: "../../kubernetes/nodejs-deployment.yaml"
+        dest: /root/nodejs-deployment.yaml
+
+    - name: Apply Node.js Deployment
+      command: kubectl apply -f /root/nodejs-deployment.yaml
+
+    - name: Create Node.js Service
+      copy:
+        src: "../../kubernetes/nodejs-service.yaml"
+        dest: /root/nodejs-service.yaml
+
+    - name: Apply Node.js Service
+      command: kubectl apply -f /root/nodejs-service.yaml

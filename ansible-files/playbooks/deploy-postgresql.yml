@@ -1,0 +1,20 @@
+---
+- name: Deploy PostgreSQL Database
+  hosts: master
+  become: yes
+  tasks:
+    - name: Create PostgreSQL StatefulSet
+      copy:
+        src: "../../kubernetes/postgres-statefulset.yaml"
+        dest: /root/postgres-statefulset.yaml
+
+    - name: Apply PostgreSQL StatefulSet
+      command: kubectl apply -f /root/postgres-statefulset.yaml
+
+    - name: Create PostgreSQL Service
+      copy:
+        src: "../../kubernetes/postgres-service.yaml"
+        dest: /root/postgres-service.yaml
+
+    - name: Apply PostgreSQL Service
+      command: kubectl apply -f /root/postgres-service.yaml
