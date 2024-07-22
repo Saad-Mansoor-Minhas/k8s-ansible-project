@@ -1,0 +1,92 @@
+---
+- name: Provision EC2 Instances
+  hosts: localhost
+  gather_facts: no
+  vars:
+    aws_region: "us-east-1"
+    master_instance_type: "t2.medium"
+    worker_instance_type: "t2.micro"
+    ami: "ami-04b70fa74e45c3917"  # Ubuntu Server 24.04 LTS (HVM)
+    key_name: "#######" # specify your kepair here for ec2 instances
+    security_group: "##########" # specify your security group id here (remeber to open port 6443 and 22)
+    master_instance_name: "k8s-master"
+    worker_instance_name: "k8s-worker"
+    vpc_subnet_id: "##############"  # Specify your subnet ID here
+    vpc_id: "##################"  # specify your VPC ID here
+  tasks:
+    - name: Launch EC2 instance for master
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
+        instance_type: "{{ master_instance_type }}"
+        image_id: "{{ ami }}"
+        region: "{{ aws_region }}"
+        security_groups: "{{ security_group }}"
+        subnet_id: "{{ vpc_subnet_id }}"
+        wait: yes
+        wait_timeout: 500
+        tags:
+          Name: "{{ master_instance_name }}"
+        network:
+          subnet_id: "{{ vpc_subnet_id }}"
+          associate_public_ip_address: yes
+      register: ec2_master
+
+    - name: Output for master node
+      local_action:
+        module: copy
+        content: "{{ ec2_master }}"
+        dest: "./master_output"
+
+    - name: Launch EC2 instance for worker
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
+        instance_type: "{{ worker_instance_type }}"
+        image_id: "{{ ami }}"
+        region: "{{ aws_region }}"
+        security_groups: "{{ security_group }}"
+        subnet_id: "{{ vpc_subnet_id }}"
+        wait: yes
+        wait_timeout: 500
+        tags:
+          Name: "{{ worker_instance_name }}"
+        network:
+          subnet_id: "{{ vpc_subnet_id }}"
+          associate_public_ip_address: yes
+      register: ec2_worker
+
+    - name: Output for worker node
+      local_action:
+        module: copy
+        content: "{{ ec2_worker }}"
+        dest: "./worker_output"
+
+    - name: Add master instance to host group
+      add_host:
+        hostname: "{{ item.public_ip_address }}"
+        groupname: master
+      with_items: "{{ ec2_master.instances }}"
+
+    - name: Add worker instance to host group
+      add_host:
+        hostname: "{{ item.public_ip_address }}"
+        groupname: worker
+      with_items: "{{ ec2_worker.instances }}"
+
+    - name: Wait for SSH to come up on master
+      wait_for:
+        host: "{{ item.public_ip_address }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: "{{ ec2_master.instances }}"
+
+    - name: Wait for SSH to come up on worker
+      wait_for:
+        host: "{{ item.public_ip_address }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+      with_items: "{{ ec2_worker.instances }}"
+
