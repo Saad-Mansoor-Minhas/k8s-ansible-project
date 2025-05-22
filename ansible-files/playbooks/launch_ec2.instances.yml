@@ -7,12 +7,12 @@
     master_instance_type: "t2.medium"
     worker_instance_type: "t2.micro"
     ami: "ami-04b70fa74e45c3917"  # Ubuntu Server 24.04 LTS (HVM)
-    key_name: "#######" # specify your kepair here for ec2 instances
-    security_group: "##########" # specify your security group id here (remeber to open port 6443 and 22)
+    key_name: "#######" # redacted
+    security_group: "##########" # redacted
     master_instance_name: "k8s-master"
     worker_instance_name: "k8s-worker"
-    vpc_subnet_id: "##############"  # Specify your subnet ID here
-    vpc_id: "##################"  # specify your VPC ID here
+    vpc_subnet_id: "##############"  # redacted
+    vpc_id: "##################"  # redacted
   tasks:
     - name: Launch EC2 instance for master
       amazon.aws.ec2_instance:
